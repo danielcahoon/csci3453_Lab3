@@ -12,9 +12,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Page.h"
+
 using namespace std;
 
-void FIFO(vector<int> pages, std::string outputFile, int frameSize) {
+
+void FIFO(vector<Page> pages, std::string outputFile, int frameSize) {
   int curr = 0;
   int pageListLength = 0;
   int *pageList = new int[frameSize];
@@ -31,10 +34,10 @@ void FIFO(vector<int> pages, std::string outputFile, int frameSize) {
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
 
-  for (std::vector<int>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+  for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
-      if (*it == pageList[i]) {
+      if (it->pageNumber() == pageList[i]) {
         found = true;
         break;
       }
@@ -43,11 +46,11 @@ void FIFO(vector<int> pages, std::string outputFile, int frameSize) {
       continue;
     }
     ++pageFaults;
-    pageList[curr] = *it;
+    pageList[curr] = it->pageNumber();
     ++curr;
     ++pageListLength;
-    if (pageListLength > 128) {
-      pageListLength = 128;
+    if (pageListLength > frameSize) {
+      pageListLength = frameSize;
     }
     curr %= frameSize;
     switch(totalPageRequests) {
@@ -76,14 +79,16 @@ void FIFO(vector<int> pages, std::string outputFile, int frameSize) {
           << "  " << pageFaultRate8000
           << "  " << pageFaultRate10000 << endl;
   dataOut.close();
+  delete [] pageList;
 }
 
-void LRU(vector<int> pages, std::string outputFile, int frameSize) {
+void LRU(vector<Page> pages, std::string outputFile, int frameSize) {
   int pageListLength = 0;
   int *pageList = new int[frameSize];
   int totalPageRequests = 1;
 
   bool found = false;
+
   std::ofstream dataOut;
 
   float pageFaults = 0.0;
@@ -92,23 +97,16 @@ void LRU(vector<int> pages, std::string outputFile, int frameSize) {
   float pageFaultRate6000 = 0.0;
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
-  for (std::vector<int>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+  for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
-      if (*it == pageList[i]) {
+      if (it->pageNumber() == pageList[i]) {
         found = true;
-        ++pageListLength;
-        if (pageListLength > 128) {
-          pageListLength = 128;
-        }
         int temp = pageList[i];
-        for (int j = i; i > 0; --i) {
-          if (j == 0) {
-            pageList[0] = temp;
-            break;
-          }
+        for (int j = i; j > 0; --j) {
           pageList[j] = pageList[j - 1];
         }
+        pageList[0] = temp;
         break;
       }
     }
@@ -116,14 +114,14 @@ void LRU(vector<int> pages, std::string outputFile, int frameSize) {
       continue;
     }
     ++pageListLength;
-    if (pageListLength > 128) {
-      pageListLength = 128;
+    if (pageListLength > frameSize) {
+      pageListLength = frameSize;
     }
     ++pageFaults;
-    for (int i = pageListLength; i > 0; --i) {
+    for (int i = pageListLength -1; i > 0; --i) {
       pageList[i] = pageList[i - 1];
     }
-    pageList[0] = *it;
+    pageList[0] = it->pageNumber();
     switch(totalPageRequests) {
     case 2000:
       pageFaultRate2000 = pageFaults / 2000.0;
@@ -150,15 +148,17 @@ void LRU(vector<int> pages, std::string outputFile, int frameSize) {
           << "  " << pageFaultRate8000
           << "  " << pageFaultRate10000 << endl;
   dataOut.close();
+  delete [] pageList;
 }
 
-void LFU(vector<int> pages, std::string outputFile, int frameSize) {
-  int curr = 0;
+void LFU(vector<Page> pages, std::string outputFile, int frameSize) {
   int pageListLength = 0;
-  int *pageList = new int[frameSize];
   int totalPageRequests = 1;
 
+  Page* pageList = new Page[frameSize];
+
   bool found = false;
+
   std::ofstream dataOut;
 
   float pageFaults = 0.0;
@@ -167,8 +167,61 @@ void LFU(vector<int> pages, std::string outputFile, int frameSize) {
   float pageFaultRate6000 = 0.0;
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
-  for (std::vector<int>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+  for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
     found = false;
+    for (int i = 0; i < pageListLength; ++i) {
+      if (it->pageNumber() == pageList[i].pageNumber()) {
+        found = true;
+        pageList[i].incTimesHit();
+        break;
+      }
+    }
+
+    bool sorted = false;
+    int foo = 0;
+
+    while(!sorted && pageListLength > 1) {  
+      for (int i = 0; i < pageListLength; ++i) {
+        if (((i + 1) < pageListLength) && pageList[i].timesHit() < pageList[i + 1].timesHit()) {
+          Page temp = pageList[i + 1];
+          pageList[i + 1] = pageList[i];
+          pageList[i] = temp;
+        } else if (i == pageListLength - 1 && pageList[i - 1].timesHit() >= pageList[i].timesHit()) {
+          sorted = true;
+        }
+      }
+    }
+
+    if (found) {
+      continue;
+    }
+    ++pageListLength;
+    if (pageListLength > frameSize) {
+      pageListLength = frameSize;
+    }
+    ++pageFaults;
+    for (int i = pageListLength - 1; i > 0; --i) {
+      pageList[i] = pageList[i - 1];
+    }
+    pageList[0] = *it;
+    
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
   }
   dataOut.open(outputFile, std::ios::app);
   dataOut << "LFU         " << pageFaults 
@@ -178,15 +231,18 @@ void LFU(vector<int> pages, std::string outputFile, int frameSize) {
           << "  " << pageFaultRate8000
           << "  " << pageFaultRate10000 << endl;
   dataOut.close();
+  delete [] pageList;
 }
 
-void Optimal(vector<int> pages, std::string outputFile, int frameSize) {
-  int curr = 0;
+
+void Optimal(vector<Page> pages, std::string outputFile, int frameSize) {
+  int curr = 0; 
   int pageListLength = 0;
   int *pageList = new int[frameSize];
   int totalPageRequests = 1;
 
   bool found = false;
+  
   std::ofstream dataOut;
 
   float pageFaults = 0.0;
@@ -195,8 +251,70 @@ void Optimal(vector<int> pages, std::string outputFile, int frameSize) {
   float pageFaultRate6000 = 0.0;
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
-  for (std::vector<int>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+
+  for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
     found = false;
+    for (int i = 0; i < pageListLength; ++i) {
+      if (it->pageNumber() == pageList[i]) {
+        found = true;
+        break;
+      }
+    }
+    if (found) { 
+      continue;
+    }
+    found = false;
+    ++pageListLength;
+    int longestDistIndex = 0;
+    if (pageListLength > frameSize) {
+      pageListLength = frameSize;
+      int longestDist = 0;
+      int currentDist = 0;
+      for (int i = 0; i < pageListLength; ++i) {
+        currentDist = 0;
+        for (std::vector<Page>::iterator it2 = it; it2 != pages.end(); ++it2, ++currentDist) {
+          if (pageList[i] == it2->pageNumber()) {
+            found = true;
+            break;
+          }
+        }
+        if (currentDist > longestDist) {
+          longestDist = currentDist;
+          longestDistIndex = i;
+        }
+      }
+      ++pageFaults;
+      if (!found) {
+        ++curr;
+        curr %= frameSize; 
+        pageList[curr] = it->pageNumber();
+      } else {
+        pageList[longestDistIndex] = it->pageNumber();
+      }
+    } else {
+      ++pageFaults;
+      pageList[curr] = it->pageNumber();
+      ++curr;
+      curr %= frameSize;
+    }
+
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
   }
   dataOut.open(outputFile, std::ios::app);
   dataOut << "Optimal     " << pageFaults 
@@ -206,11 +324,12 @@ void Optimal(vector<int> pages, std::string outputFile, int frameSize) {
           << "  " << pageFaultRate8000
           << "  " << pageFaultRate10000 << endl;
   dataOut.close();
+  delete [] pageList;
 }
 
 int main (int argc, char *argv[]) {
   if (argc > 4) {
-    fprintf(stderr, "usage:  ucd-csci3453-Lab3 frame_size inputFile outputFile\n");
+    fprintf(stderr, "usage:  ucd-csci3453-Lab3 frameSize inputFile outputFile\n");
     exit(1);
   }
 
@@ -219,7 +338,7 @@ int main (int argc, char *argv[]) {
   std::string fileOutName = argv[3];
   std::ifstream dataIn;
   std::ofstream dataOut;
-  vector<int> pageRequests;
+  vector<Page> pageRequests;
 
   dataIn.open(fileInName);
   std::string s;
@@ -229,7 +348,8 @@ int main (int argc, char *argv[]) {
     if (dataIn.eof()) {
       break;
     }
-    pageRequests.push_back(stoi(s));
+    Page temp = Page(stoi(s));
+    pageRequests.push_back(temp);
   }
   dataIn.close();
 
