@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -35,6 +36,23 @@ void FIFO(vector<Page> pages, std::string outputFile, int frameSize) {
   float pageFaultRate10000 = 0.0;
 
   for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
       if (it->pageNumber() == pageList[i]) {
@@ -53,27 +71,26 @@ void FIFO(vector<Page> pages, std::string outputFile, int frameSize) {
       pageListLength = frameSize;
     }
     curr %= frameSize;
-    switch(totalPageRequests) {
-    case 2000:
-      pageFaultRate2000 = pageFaults / 2000.0;
-      break;
-    case 4000:
-      pageFaultRate4000 = pageFaults / 4000.0;
-      break;
-    case 6000:
-      pageFaultRate6000 = pageFaults / 6000.0;
-      break;
-    case 8000:
-      pageFaultRate8000 = pageFaults / 8000.0;
-      break;
-    case 10000:
-      pageFaultRate10000 = pageFaults / 10000.0;
-      break;
-    }
+  }
+  if (pageFaultRate2000 == 0) {
+    pageFaultRate2000 = pageFaults / 2000.0;  
+  }
+  if (pageFaultRate4000 == 0) {
+    pageFaultRate4000 = pageFaults / 4000.0;  
+  }
+  if (pageFaultRate6000 == 0) {
+    pageFaultRate6000 = pageFaults / 6000.0;
+  }
+  if (pageFaultRate8000 == 0) {
+   pageFaultRate8000 = pageFaults / 8000.0;
+  }
+  if (pageFaultRate10000 == 0) {
+    pageFaultRate10000 = pageFaults / 10000.0;
   }
   dataOut.open(outputFile, std::ios::app);
-  dataOut << "FIFO        " << pageFaults 
-          << "                    " << pageFaultRate2000 
+  dataOut << "FIFO        " << pageFaults << setprecision(3) << fixed
+          << "                 "
+                  << pageFaultRate2000
           << "  " << pageFaultRate4000
           << "  " << pageFaultRate6000
           << "  " << pageFaultRate8000
@@ -98,6 +115,23 @@ void LRU(vector<Page> pages, std::string outputFile, int frameSize) {
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
   for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
       if (it->pageNumber() == pageList[i]) {
@@ -122,27 +156,26 @@ void LRU(vector<Page> pages, std::string outputFile, int frameSize) {
       pageList[i] = pageList[i - 1];
     }
     pageList[0] = it->pageNumber();
-    switch(totalPageRequests) {
-    case 2000:
-      pageFaultRate2000 = pageFaults / 2000.0;
-      break;
-    case 4000:
-      pageFaultRate4000 = pageFaults / 4000.0;
-      break;
-    case 6000:
-      pageFaultRate6000 = pageFaults / 6000.0;
-      break;
-    case 8000:
-      pageFaultRate8000 = pageFaults / 8000.0;
-      break;
-    case 10000:
-      pageFaultRate10000 = pageFaults / 10000.0;
-      break;
-    }
+  }
+  if (pageFaultRate2000 == 0) {
+    pageFaultRate2000 = pageFaults / 2000.0;  
+  }
+  if (pageFaultRate4000 == 0) {
+    pageFaultRate4000 = pageFaults / 4000.0;  
+  }
+  if (pageFaultRate6000 == 0) {
+    pageFaultRate6000 = pageFaults / 6000.0;
+  }
+  if (pageFaultRate8000 == 0) {
+   pageFaultRate8000 = pageFaults / 8000.0;
+  }
+  if (pageFaultRate10000 == 0) {
+    pageFaultRate10000 = pageFaults / 10000.0;
   }
   dataOut.open(outputFile, std::ios::app);
-  dataOut << "LRU         " << pageFaults 
-          << "                    " << pageFaultRate2000 
+  dataOut << "LRU         " << pageFaults << setprecision(3) << fixed
+          << "                 "
+                  << pageFaultRate2000
           << "  " << pageFaultRate4000
           << "  " << pageFaultRate6000
           << "  " << pageFaultRate8000
@@ -168,6 +201,23 @@ void LFU(vector<Page> pages, std::string outputFile, int frameSize) {
   float pageFaultRate8000 = 0.0;
   float pageFaultRate10000 = 0.0;
   for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
       if (it->pageNumber() == pageList[i].pageNumber()) {
@@ -205,27 +255,27 @@ void LFU(vector<Page> pages, std::string outputFile, int frameSize) {
     }
     pageList[0] = *it;
     
-    switch(totalPageRequests) {
-    case 2000:
-      pageFaultRate2000 = pageFaults / 2000.0;
-      break;
-    case 4000:
-      pageFaultRate4000 = pageFaults / 4000.0;
-      break;
-    case 6000:
-      pageFaultRate6000 = pageFaults / 6000.0;
-      break;
-    case 8000:
-      pageFaultRate8000 = pageFaults / 8000.0;
-      break;
-    case 10000:
-      pageFaultRate10000 = pageFaults / 10000.0;
-      break;
-    }
+    
+  }
+  if (pageFaultRate2000 == 0) {
+    pageFaultRate2000 = pageFaults / 2000.0;  
+  }
+  if (pageFaultRate4000 == 0) {
+    pageFaultRate4000 = pageFaults / 4000.0;  
+  }
+  if (pageFaultRate6000 == 0) {
+    pageFaultRate6000 = pageFaults / 6000.0;
+  }
+  if (pageFaultRate8000 == 0) {
+   pageFaultRate8000 = pageFaults / 8000.0;
+  }
+  if (pageFaultRate10000 == 0) {
+    pageFaultRate10000 = pageFaults / 10000.0;
   }
   dataOut.open(outputFile, std::ios::app);
-  dataOut << "LFU         " << pageFaults 
-          << "                    " << pageFaultRate2000 
+  dataOut << "LFU         " << pageFaults << setprecision(3) << fixed
+          << "                 "
+                  << pageFaultRate2000
           << "  " << pageFaultRate4000
           << "  " << pageFaultRate6000
           << "  " << pageFaultRate8000
@@ -233,7 +283,6 @@ void LFU(vector<Page> pages, std::string outputFile, int frameSize) {
   dataOut.close();
   delete [] pageList;
 }
-
 
 void Optimal(vector<Page> pages, std::string outputFile, int frameSize) {
   int curr = 0; 
@@ -253,6 +302,23 @@ void Optimal(vector<Page> pages, std::string outputFile, int frameSize) {
   float pageFaultRate10000 = 0.0;
 
   for (std::vector<Page>::iterator it = pages.begin(); it != pages.end(); ++it, ++totalPageRequests) {
+    switch(totalPageRequests) {
+    case 2000:
+      pageFaultRate2000 = pageFaults / 2000.0;
+      break;
+    case 4000:
+      pageFaultRate4000 = pageFaults / 4000.0;
+      break;
+    case 6000:
+      pageFaultRate6000 = pageFaults / 6000.0;
+      break;
+    case 8000:
+      pageFaultRate8000 = pageFaults / 8000.0;
+      break;
+    case 10000:
+      pageFaultRate10000 = pageFaults / 10000.0;
+      break;
+    }
     found = false;
     for (int i = 0; i < pageListLength; ++i) {
       if (it->pageNumber() == pageList[i]) {
@@ -297,28 +363,26 @@ void Optimal(vector<Page> pages, std::string outputFile, int frameSize) {
       ++curr;
       curr %= frameSize;
     }
-
-    switch(totalPageRequests) {
-    case 2000:
-      pageFaultRate2000 = pageFaults / 2000.0;
-      break;
-    case 4000:
-      pageFaultRate4000 = pageFaults / 4000.0;
-      break;
-    case 6000:
-      pageFaultRate6000 = pageFaults / 6000.0;
-      break;
-    case 8000:
-      pageFaultRate8000 = pageFaults / 8000.0;
-      break;
-    case 10000:
-      pageFaultRate10000 = pageFaults / 10000.0;
-      break;
-    }
+  }
+  if (pageFaultRate2000 == 0) {
+    pageFaultRate2000 = pageFaults / 2000.0;  
+  }
+  if (pageFaultRate4000 == 0) {
+    pageFaultRate4000 = pageFaults / 4000.0;  
+  }
+  if (pageFaultRate6000 == 0) {
+    pageFaultRate6000 = pageFaults / 6000.0;
+  }
+  if (pageFaultRate8000 == 0) {
+   pageFaultRate8000 = pageFaults / 8000.0;
+  }
+  if (pageFaultRate10000 == 0) {
+    pageFaultRate10000 = pageFaults / 10000.0;
   }
   dataOut.open(outputFile, std::ios::app);
-  dataOut << "Optimal     " << pageFaults 
-          << "                    " << pageFaultRate2000 
+  dataOut << "Optimal     " << pageFaults << setprecision(3) << fixed
+          << "                 "
+                  << pageFaultRate2000
           << "  " << pageFaultRate4000
           << "  " << pageFaultRate6000
           << "  " << pageFaultRate8000
@@ -354,12 +418,12 @@ int main (int argc, char *argv[]) {
   dataIn.close();
 
   dataOut.open(fileOutName, std::ios::app);
-  dataOut << "==============================================================" << endl;
-  dataOut << "    Page Replacement Algorithm Simulation (frame size = " << frameSize << ")" << endl;
-  dataOut << "==============================================================" << endl;
-  dataOut << "                                       Page Fault Rates" << endl;
-  dataOut << "Algorithm  Total page faults     2000  4000  6000  8000  10000" << endl;
-  dataOut << "--------------------------------------------------------------" << endl;
+  dataOut << "==================================================================" << endl;
+  dataOut << "       Page Replacement Algorithm Simulation (frame size = " << frameSize << ")" << endl;
+  dataOut << "==================================================================" << endl;
+  dataOut << "                                             Page Fault Rates" << endl;
+  dataOut << "Algorithm  Total page faults     2000   4000   6000   8000   10000" << endl;
+  dataOut << "------------------------------------------------------------------" << endl;
   dataOut.close();
   FIFO(pageRequests, fileOutName, frameSize);
   LRU(pageRequests, fileOutName, frameSize);
